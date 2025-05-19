@@ -30,7 +30,7 @@ const LeftSidebar = () => {
                }
             })
             if (!userExist) {
-              setUser(querySnap.docs[0].data()); 
+              setUser(querySnap.docs[0].data()) 
             }
         }
         else {
@@ -105,16 +105,18 @@ const LeftSidebar = () => {
           ? <div onClick={addChat} className='friends add-user'>
             {user?.avatar
               ? <img src={user.avatar} alt={user.name} />
-              : <img src={assets.default_avatar} alt="default" />}
+              : <img src={assets.avatar_icon} alt="default" />}
 
             <p>{user.name}</p>
           </div>
-          : Array(12).fill("").map((item, index) => (
+          : chatData.map((item, index) => (
             <div key={index} className="friends">
-              <img src={assets.profile_img} alt="" />
+               {userData?.avatar
+              ? <img src={item.userData.avatar} alt={user.name} />
+              : <img src={assets.avatar_icon} alt="default" />}
               <div>
-                <p>Lora Sanford</p>
-                <span>Hello, How are you?</span>
+                <p>{item.userData.name}</p>
+                <span>{item.lastMessage}</span>
               </div>
             </div>
           ))
