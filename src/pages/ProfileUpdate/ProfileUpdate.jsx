@@ -22,10 +22,6 @@ const ProfileUpdate = () => {
     event.preventDefault();
 
     try {
-      if (!prevImage && !image) {
-        toast.warn("Profile image not uploaded. Using default avatar.");
-      }
-
       const docRef = doc(db, 'users', uid);
 
       if (image) {
@@ -46,7 +42,6 @@ const ProfileUpdate = () => {
           name: name,
           avatar: prevImage || "", // optional fallback
         });
-        toast.success("Profile updated successfully.");
         navigate('/chat');
       }
     } catch (error) {
