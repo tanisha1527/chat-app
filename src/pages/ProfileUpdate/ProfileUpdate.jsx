@@ -6,7 +6,6 @@ import { auth, db } from '../../config/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import upload from '../../lib/upload';
 import { AppContext } from '../../context/AppContext';
 
 const ProfileUpdate = () => {
@@ -93,7 +92,17 @@ const ProfileUpdate = () => {
           <textarea onChange={(e) => setBio(e.target.bio)} value={bio} placeholder='Write profile bio' required></textarea>
           <button type='submit'>Save</button>
         </form>
-        <img src={image ? URL.createObjectURL(image) : assets.logo_icon} className='profile-photo' alt="" />
+        <img
+          src={
+            image
+              ? URL.createObjectURL(image)
+              : prevImage && prevImage !== ""
+                ? prevImage
+                : assets.logo_icon
+          }
+          className="profile-photo"
+          alt="Profile"
+        />
       </div>
     </div>
   )
