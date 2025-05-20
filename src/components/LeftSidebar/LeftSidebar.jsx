@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 const LeftSidebar = () => {
 
   const navigate = useNavigate();
-  const { userData,chatData } = useContext(AppContext);
+  const { userData,chatData,chatUser,setChatUser,setMessagesId,messagesId } = useContext(AppContext);
   const [user, setUser] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
 
@@ -69,7 +69,7 @@ const LeftSidebar = () => {
       await updateDoc(doc(chatsRef, userData.id), {
         chatsData: arrayUnion({
           messageId: newMessageRef.id,
-          lastMessage: "",
+          lastMessage: " ",
           rId: user.id,
           updatedAt: Date.now(),
           messageSeen: true
@@ -79,6 +79,11 @@ const LeftSidebar = () => {
       toast.error(error.message);
       console.error(error);
     }
+  }
+
+  const setChat = async (item) => {
+      setMessagesId(item.messagesId);
+      setChatUser(item)
   }
 
   return (
@@ -110,13 +115,13 @@ const LeftSidebar = () => {
             <p>{user.name}</p>
           </div>
           : chatData.map((item, index) => (
-            <div key={index} className="friends">
+            <div onClick={()=>setChat(item)} key={index} className="friends">
                {userData?.avatar
               ? <img src={item.userData.avatar} alt={user.name} />
               : <img src={assets.avatar_icon} alt="default" />}
               <div>
-                <p>{item.userData.name}</p>
-                <span>{item.lastMessage}</span>
+                 <p>{item.userData.name}</p>
+                 <span>{item.lastMessage}</span>
               </div>
             </div>
           ))
