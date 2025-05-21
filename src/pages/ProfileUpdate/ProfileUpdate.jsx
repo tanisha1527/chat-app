@@ -1,99 +1,126 @@
 import { useContext, useEffect, useState } from 'react'
 import assets from '../../assets/assets'
 import './ProfileUpdate.css'
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../../config/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { AppContext } from '../../context/AppContext';
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth, db } from '../../config/firebase'
+import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { AppContext } from '../../context/AppContext'
+import upload from '../../lib/upload'
+
 
 const ProfileUpdate = () => {
-
-  const navigate = useNavigate();
-  const [image, setImage] = useState(false);
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
-  const [uid, setUid] = useState("");
-  const [prevImage, setPrevImage] = useState("");
-  const { setUserData } = useContext(AppContext);
+  const navigate = useNavigate()
+  const [image, setImage] = useState(null)
+  const [name, setName] = useState("")
+  const [bio, setBio] = useState("")
+  const [uid, setUid] = useState("")
+  const [prevImage, setPrevImage] = useState("")
+  const { setUserData } = useContext(AppContext)
 
   const profileUpdate = async (event) => {
-    event.preventDefault();
-
+    event.preventDefault()
     try {
-      const docRef = doc(db, 'users', uid);
+      const docRef = doc(db, 'users', uid)
+      let imageUrl = prevImage
 
       if (image) {
-        // You can skip this if you're not using Firebase Storage
-        // const imgUrl = await upload(image);
-        // setPrevImage(imgUrl);
-        // await updateDoc(docRef, {
-        //   avatar: imgUrl,
-        //   bio: bio,
-        //   name: name
-        // });
-
-        toast.error("Image upload not supported on current plan.");
-        return; // Stop further execution
-      } else {
-        await updateDoc(docRef, {
-          bio: bio,
-          name: name,
-          avatar: prevImage || "", // optional fallback
-        });
-        navigate('/chat');
+        imageUrl = await upload(image)
+        if (!imageUrl) {
+          toast.error("Image upload failed.")
+          return
+        }
       }
+
+      await updateDoc(docRef, {
+        avatar: imageUrl || "",
+        bio: bio,
+        name: name,
+      })
+
+      setUserData(prev => ({
+        ...prev,
+        avatar: imageUrl,
+        bio,
+        name,
+      }))
+
+      toast.success("Profile updated!")
+      navigate('/chat')
     } catch (error) {
-      toast.error("Failed to update profile.");
-      console.log(error);
+      toast.error("Failed to update profile.")
+      console.error(error)
     }
-  };
+  }
 
   useEffect(() => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUid(user.uid)
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.data().name) {
-          setName(docSnap.data().name);
+        const docRef = doc(db, "users", user.uid)
+        const docSnap = await getDoc(docRef)
+        const data = docSnap.data()
+
+        if (data) {
+          if (data.name) setName(data.name)
+          if (data.bio) setBio(data.bio)
+          if (data.avatar) setPrevImage(data.avatar)
         }
-        if (docSnap.data().bio) {
-          setBio(docSnap.data().bio);
-        }
-        if (docSnap.data().avatar) {
-          setPrevImage(docSnap.data().avatar);
-        }
-      }
-      else {
+      } else {
         navigate('/')
       }
     })
   }, [])
-
 
   return (
     <div className='profile'>
       <div className="profile-container">
         <form onSubmit={profileUpdate}>
           <h3>Profile Details</h3>
+
           <label htmlFor="avatar">
-            <input onChange={(e) => setImage(e.target.files[0])} type="file" id='avatar' accept='.png, .jpg, .jpeg' hidden />
-            <img src={image ? URL.createObjectURL(image) : assets.avatar_icon} alt="" />
-            upload profile image
+            <input
+              onChange={(e) => setImage(e.target.files[0])}
+              type="file"
+              id="avatar"
+              accept=".png, .jpg, .jpeg"
+              hidden
+            />
+            <img
+              src={
+                image
+                  ? URL.createObjectURL(image)
+                  : prevImage || assets.avatar_icon
+              }
+              alt="Avatar"
+            />
+            Upload Profile Image
           </label>
-          <input onChange={(e) => setName(e.target.value)} value={name} type="text" placeholder='Your name' required />
-          <textarea onChange={(e) => setBio(e.target.bio)} value={bio} placeholder='Write profile bio' required></textarea>
-          <button type='submit'>Save</button>
+
+          <input
+            onChange={(e) => setName(e.target.value)}
+            value={name}
+            type="text"
+            placeholder="Your name"
+            required
+          />
+
+          <textarea
+            onChange={(e) => setBio(e.target.value)}
+            value={bio}
+            placeholder="Write profile bio"
+            required
+          ></textarea>
+
+          <button type="submit">Save</button>
         </form>
+
         <img
           src={
             image
               ? URL.createObjectURL(image)
-              : prevImage && prevImage !== ""
-                ? prevImage
-                : assets.logo_icon
+              : prevImage || assets.logo_icon
           }
           className="profile-photo"
           alt="Profile"
