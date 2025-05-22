@@ -74,7 +74,41 @@ const ChatBox = () => {
             createdAt: new Date()
           })
         });
+
+        const userIDs = [chatUser.rId, userData.id];
+
+        userIDs.forEach(async (id) => {
+          const userChatsRef = doc(db, 'chats', id);
+          const userChatsSnapshot = await getDoc(userChatsRef);
+
+          if (userChatsSnapshot.exists()) {
+            const userChatData = userChatsSnapshot.data();
+
+            if (!Array.isArray(userChatData.chatsData)) {
+              console.warn("chatsData is undefined or not an array:", userChatData.chatsData);
+              return;
+            }
+
+            const chatIndex = userChatData.chatsData.findIndex((c) => c.messageId === messagesId);
+            if (chatIndex === -1) {
+              console.warn("messageId not found in chatsData");
+              return;
+            }
+
+            userChatData.chatsData[chatIndex].lastMessage = "Image";
+            userChatData.chatsData[chatIndex].updatedAt = Date.now();
+
+            if (userChatData.chatsData[chatIndex].rId === userData.id) {
+              userChatData.chatsData[chatIndex].messageSeen = false;
+            }
+
+                        await updateDoc(userChatsRef, {
+              chatsData: userChatData.chatsData
+            });
+          }
+        });
       }
+
     } catch (error) {
       toast.error(error.message);
     }
@@ -104,9 +138,7 @@ const ChatBox = () => {
   return chatUser ? (
     <div className='chat-box'>
       <div className="chat-user">
-        {chatUser.userData?.avatar
-          ? <img src={chatUser.userData.avatar} alt={chatUser.userData.name} />
-          : <img src={assets.avatar_icon} alt="default" />}
+        <img src={chatUser.userData.avatar} alt="" />
         <p>{chatUser.userData.name}<img src={assets.green_dot} className='dot' alt="online status" /></p>
         <img src={assets.help_icon} alt="Help" className='help' />
       </div>
@@ -122,8 +154,8 @@ const ChatBox = () => {
               <img
                 src={
                   msg.sId === userData.id
-                    ? (userData.avatar || assets.avatar_icon)
-                    : (chatUser.userData.avatar || assets.avatar_icon)
+                    ? (userData.avatar)
+                    : (chatUser.userData.avatar)
                 }
                 alt="avatar"
               />
