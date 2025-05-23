@@ -46,7 +46,7 @@ const ProfileUpdate = () => {
         name,
       }))
 
-      toast.success("Profile updated!")
+      
       navigate('/chat')
     } catch (error) {
       toast.error("Failed to update profile.")
