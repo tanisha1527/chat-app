@@ -8,7 +8,7 @@ import { toast } from 'react-toastify'
 import upload from '../../lib/upload'
 
 const ChatBox = () => {
-  const { userData, messagesId, chatUser, messages, setMessages } = useContext(AppContext);
+  const { userData, messagesId, chatUser, messages, setMessages, chatVisible, setChatVisible } = useContext(AppContext);
   const [input, setInput] = useState("");
 
   const sendMessage = async () => {
@@ -136,11 +136,12 @@ const ChatBox = () => {
   }, [messagesId]);
 
   return chatUser ? (
-    <div className='chat-box'>
+    <div className={`chat-box ${chatVisible ? "" : "hidden"}`}>
       <div className="chat-user">
         <img src={chatUser.userData.avatar} alt="" />
         <p>{chatUser.userData.name} {Date.now()-chatUser.userData.lastSeen <= 70000 ?<img src={assets.green_dot} className='dot' alt="online status" /> : null}</p>
         <img src={assets.help_icon} alt="Help" className='help' />
+        <img onClick={()=>setChatVisible(false)} src={assets.arrow_icon} className='arrow' alt="" />
       </div>
 
       <div className="chat-msg">
@@ -185,12 +186,11 @@ const ChatBox = () => {
         <img onClick={sendMessage} src={assets.send_button} alt="Send" />
       </div>
     </div>
-  ) : (
-    <div className='chat-welcome'>
+  ) 
+    : <div className={`chat-welcome ${chatVisible ? "" : "hidden"}`}>
       <img src={assets.logo_icon} alt="Logo" />
       <p>Chat anytime, anywhere</p>
     </div>
-  );
-};
+}
 
 export default ChatBox;
