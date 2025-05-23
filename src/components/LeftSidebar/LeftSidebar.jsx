@@ -3,7 +3,7 @@ import assets from '../../assets/assets'
 import { useNavigate } from 'react-router-dom'
 import { arrayUnion, collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { toast } from 'react-toastify';
 
@@ -75,6 +75,19 @@ const LeftSidebar = () => {
           messageSeen: true
         })
       })
+
+     const uSnap = await getDoc(doc(db,'users',user.id));
+     const uData = uSnap.data();
+     setChat({
+        messagesId: newMessageRef.id,
+        lastMessage: "",
+        rId: user.id,
+        updatedAt: Date.now(),
+        messageSeen: true,
+        userData: uData
+     })
+      setShowSearch(false)
+      setChatVisible(true)
     } catch (error) {
       toast.error(error.message);
       console.error(error);
@@ -98,6 +111,19 @@ const LeftSidebar = () => {
       toast.error(error.message)
     }
   }
+
+  useEffect(()=> {
+       
+     const updateChatUserData = async () => {
+      if (chatUser) {
+        const userRef = doc(db,'users',chatUser.userData.id);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
+        setChatUser(prev=>({...prev,userData:userData}))
+      }
+     }
+     updateChatUserData();
+  },[chatData])
 
   return (
     <div className={`ls ${chatVisible ? "hidden" : ""}`}>
